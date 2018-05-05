@@ -1,6 +1,27 @@
 require 'vendor/tone'
 
 class Tone
+  class Loop
+    include Native
+
+    alias_native :start
+    alias_native :stop
+
+    def initialize(interval, &block)
+      super `new Tone.Loop(#{block.to_n}, interval)`
+    end
+  end
+
+  class Transport
+    def self.start(time)
+      `Tone.Transport.start(time)`
+    end
+
+    def self.stop(time)
+      `Tone.Transport.stop(time)`
+    end
+  end
+
   module Synth
     class Base
       include Native
