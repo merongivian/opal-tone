@@ -1,17 +1,57 @@
 require 'vendor/tone'
 
 module Kernel
-  def loop(interval: , &block)
-    the_loop = Tone::Loop.new(interval) do |time|
-      block.call(time)
+  def loop(synth)
+    part_loop = Candy::PartLoop.new(synth)
+    yield part_loop
+    part_loop.execute
+  end
+end
+
+module Candy
+  class PartLoop
+    def initialize(synth)
+      @synth = synth
+      @definitions = []
     end
 
-    the_loop.start
-    Tone::Transport.start
+    def execute
+      do_execute do |time, event|
+        @synth.trigger_attack_release(event.JS['note'], event.JS['duration'], time)
+      end
+    end
+
+    def play(note, time, duration)
+      @definitions << { note: note, time: time, duration: duration }
+    end
+
+    private
+
+    def do_execute(&block)
+      part = Tone::Part.new(@definitions) do |time, event|
+        block.call(time, event)
+      end
+
+      part.start(0)
+      part.loop = true
+
+      Tone::Transport.start
+    end
   end
 end
 
 class Tone
+  class Part
+    include Native
+
+    alias_native :start
+    native_writer :loop
+
+    def initialize(definitions, &block)
+      super `new Tone.Part(#{block.to_n}, #{definitions.to_n})`
+    end
+  end
+
   class Loop
     include Native
 
@@ -37,9 +77,15 @@ class Tone
     class Base
       include Native
 
-      alias_native :play, :triggerAttackRelease
+      alias_native :trigger_attack_release, :triggerAttackRelease
       alias_native :trigger_attack, :triggerAttack
       alias_native :trigger_release, :triggerRelease
+    end
+
+    class Basic < Base
+      def initialize
+        super `new Tone.Synth().toMaster()`
+      end
     end
 
     class AM < Base
@@ -107,3 +153,4 @@ class Tone
 end
 
 $membrane = Tone::Synth::Membrane.new
+$synth = Tone::Synth::Basic.new
