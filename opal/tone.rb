@@ -1,5 +1,16 @@
 require 'vendor/tone'
 
+module Kernel
+  def loop(interval: , &block)
+    the_loop = Tone::Loop.new(interval) do |time|
+      block.call(time)
+    end
+
+    the_loop.start
+    Tone::Transport.start
+  end
+end
+
 class Tone
   class Loop
     include Native
@@ -26,7 +37,9 @@ class Tone
     class Base
       include Native
 
-      alias_native :trigger_attack_release, :triggerAttackRelease
+      alias_native :play, :triggerAttackRelease
+      alias_native :trigger_attack, :triggerAttack
+      alias_native :trigger_release, :triggerRelease
     end
 
     class AM < Base
@@ -92,3 +105,5 @@ class Tone
     end
   end
 end
+
+$membrane = Tone::Synth::Membrane.new
