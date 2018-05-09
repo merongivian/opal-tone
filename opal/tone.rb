@@ -1,10 +1,10 @@
 require 'vendor/tone'
 
 module Kernel
-  def loop(synth: :simple)
-    part_loop = Candy::PartLoop.new(Kernel.send(synth))
-    yield part_loop
-    part_loop.execute
+  def part(synth: :simple)
+    loop = Candy::Looped::Part.new(Kernel.send(synth))
+    yield loop
+    loop.execute
   end
 
   def simple
@@ -41,33 +41,35 @@ module Kernel
 end
 
 module Candy
-  class PartLoop
-    def initialize(synth)
-      @synth = synth
-      @definitions = []
-    end
-
-    def execute
-      do_execute do |time, event|
-        @synth.trigger_attack_release(event.JS['note'], event.JS['duration'], time)
-      end
-    end
-
-    def play(note, time, duration)
-      @definitions << { note: note, time: time, duration: duration }
-    end
-
-    private
-
-    def do_execute(&block)
-      part = Tone::Part.new(@definitions) do |time, event|
-        block.call(time, event)
+  module Looped
+    class Part
+      def initialize(synth)
+        @synth = synth
+        @definitions = []
       end
 
-      part.start(0)
-      part.loop = true
+      def execute
+        do_execute do |time, event|
+          @synth.trigger_attack_release(event.JS['note'], event.JS['duration'], time)
+        end
+      end
 
-      Tone::Transport.start
+      def play(note, time, duration)
+        @definitions << { note: note, time: time, duration: duration }
+      end
+
+      private
+
+      def do_execute(&block)
+        part = Tone::Part.new(@definitions) do |time, event|
+          block.call(time, event)
+        end
+
+        part.start(0)
+        part.loop = true
+
+        Tone::Transport.start
+      end
     end
   end
 end
