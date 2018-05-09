@@ -1,42 +1,18 @@
 require 'vendor/tone'
 
 module Kernel
-  def loop(synth: :simple)
-    part_loop = Candy::PartLoop.new(Kernel.send(synth))
+  def loop(synth)
+    part_loop = Candy::PartLoop.new(synth)
     yield part_loop
     part_loop.execute
   end
 
-  def simple
-    Tone::Synth::Simple.new
+  def synth
+    Tone::Synth::Basic.new
   end
 
   def membrane
     Tone::Synth::Membrane.new
-  end
-
-  def am
-    Tone::Synth::AM.new
-  end
-
-  def fm
-    Tone::Synth::FM.new
-  end
-
-  def duo
-    Tone::Synth::Duo.new
-  end
-
-  def mono
-    Tone::Synth::Mono.new
-  end
-
-  def pluck
-    Tone::Synth::Pluck.new
-  end
-
-  def poly
-    Tone::Synth::Poly.new
   end
 end
 
@@ -112,6 +88,12 @@ class Tone
       alias_native :trigger_attack_release, :triggerAttackRelease
       alias_native :trigger_attack, :triggerAttack
       alias_native :trigger_release, :triggerRelease
+    end
+
+    class Basic < Base
+      def initialize
+        super `new Tone.Synth().toMaster()`
+      end
     end
 
     class AM < Base
