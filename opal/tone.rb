@@ -2,9 +2,15 @@ require 'vendor/tone'
 
 module Kernel
   def part(synth: :simple)
-    loop = Candy::Looped::Part.new(Kernel.send(synth))
-    yield loop
-    loop.execute
+    the_loop = Candy::Looped::Part.new(Kernel.send(synth))
+    yield the_loop
+    the_loop.execute
+  end
+
+  def sequence(synth: :simple, duration: )
+    the_loop = Candy::Looped::Sequence.new(Kernel.send(synth))
+    yield the_loop
+    the_loop.execute(duration)
   end
 
   def simple
@@ -71,6 +77,36 @@ module Candy
         Tone::Transport.start
       end
     end
+
+    class Sequence
+      def initialize(synth, segments = [])
+        @synth = synth
+        @segments = segments
+      end
+
+      def execute(duration)
+        do_execute(duration) do |time, note|
+          @synth.trigger_attack_release(note, duration, time)
+        end
+      end
+
+      def play(*notes)
+        @segments << notes
+      end
+
+      private
+
+      def do_execute(duration, &block)
+        part = Tone::Sequence.new(@segments, duration) do |time, note|
+          block.call(time, note)
+        end
+
+        part.start(0)
+        part.loop = true
+
+        Tone::Transport.start
+      end
+    end
   end
 end
 
@@ -83,6 +119,17 @@ class Tone
 
     def initialize(definitions, &block)
       super `new Tone.Part(#{block.to_n}, #{definitions.to_n})`
+    end
+  end
+
+  class Sequence
+    include Native
+
+    alias_native :start
+    native_writer :loop
+
+    def initialize(segments, duration, &block)
+      super `new Tone.Sequence(#{block.to_n}, #{segments.to_n}, duration)`
     end
   end
 
