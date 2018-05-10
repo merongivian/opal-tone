@@ -67,9 +67,7 @@ module Candy
       private
 
       def do_execute(&block)
-        part = Tone::Part.new(@definitions) do |time, event|
-          block.call(time, event)
-        end
+        part = Tone::Part.new(@definitions, &block)
 
         part.start(0)
         part.loop = true
@@ -97,9 +95,7 @@ module Candy
       private
 
       def do_execute(duration, &block)
-        part = Tone::Sequence.new(@segments, duration) do |time, note|
-          block.call(time, note)
-        end
+        part = Tone::Sequence.new(@segments, duration, &block)
 
         part.start(0)
         part.loop = true
