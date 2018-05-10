@@ -1,15 +1,15 @@
 require 'vendor/tone'
 
 module Kernel
-  def part(synth: :simple)
+  def part(synth: :simple, &block)
     the_loop = Candy::Looped::Part.new(Kernel.send(synth))
-    yield the_loop
+    the_loop.instance_eval(&block)
     the_loop.start
   end
 
-  def sequence(synth: :simple, duration: )
+  def sequence(synth: :simple, duration: , &block)
     the_loop = Candy::Looped::Sequence.new(Kernel.send(synth))
-    yield the_loop
+    the_loop.instance_eval(&block)
     the_loop.start(duration)
   end
 
