@@ -4,13 +4,13 @@ module Kernel
   def part(synth: :simple)
     the_loop = Candy::Looped::Part.new(Kernel.send(synth))
     yield the_loop
-    the_loop.execute
+    the_loop.start
   end
 
   def sequence(synth: :simple, duration: )
     the_loop = Candy::Looped::Sequence.new(Kernel.send(synth))
     yield the_loop
-    the_loop.execute(duration)
+    the_loop.start(duration)
   end
 
   def simple
@@ -48,14 +48,21 @@ end
 
 module Candy
   module Looped
+    def self.start(looped_element)
+      looped_element.start(0)
+      looped_element.loop = true
+
+      Tone::Transport.start
+    end
+
     class Part
       def initialize(synth)
         @synth = synth
         @definitions = []
       end
 
-      def execute
-        do_execute do |time, event|
+      def start
+        do_start do |time, event|
           @synth.trigger_attack_release(event.JS['note'], event.JS['duration'], time)
         end
       end
@@ -66,13 +73,8 @@ module Candy
 
       private
 
-      def do_execute(&block)
-        part = Tone::Part.new(@definitions, &block)
-
-        part.start(0)
-        part.loop = true
-
-        Tone::Transport.start
+      def do_start(&block)
+        Looped.start(Tone::Part.new @definitions, &block)
       end
     end
 
@@ -82,8 +84,8 @@ module Candy
         @segments = segments
       end
 
-      def execute(duration)
-        do_execute(duration) do |time, note|
+      def start(duration)
+        do_start(duration) do |time, note|
           @synth.trigger_attack_release(note, duration, time)
         end
       end
@@ -94,13 +96,8 @@ module Candy
 
       private
 
-      def do_execute(duration, &block)
-        part = Tone::Sequence.new(@segments, duration, &block)
-
-        part.start(0)
-        part.loop = true
-
-        Tone::Transport.start
+      def do_start(duration, &block)
+        Looped.start(Tone::Sequence.new @segments, duration, &block)
       end
     end
   end
