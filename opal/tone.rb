@@ -1,57 +1,87 @@
 require 'vendor/tone'
 
 module Kernel
-  def part(synth: :simple, &block)
-    the_loop = NegaSonic::Looped::Part.new(Kernel.send(synth))
+  def part(synth: simple_synth, &block)
+    the_loop = NegaSonic::Looped::Part.new(synth)
     the_loop.instance_eval(&block)
     the_loop.start
   end
 
-  def sequence(synth: :simple, interval: , &block)
-    the_loop = NegaSonic::Looped::Sequence.new(Kernel.send(synth))
+  def sequence(synth: simple_synth, interval: , &block)
+    the_loop = NegaSonic::Looped::Sequence.new(synth)
     the_loop.instance_eval(&block)
     the_loop.start(interval)
   end
 
-  def pattern(synth: :simple, interval:, type:, notes:)
-    NegaSonic::Looped::Pattern.new(Kernel.send(synth), notes, type)
-                          .start(interval, type)
+  def pattern(synth: simple_synth, interval:, type:, notes:)
+    NegaSonic::Looped::Pattern.new(synth, notes, type)
+                              .start(interval, type)
   end
 
-  def simple
+  def simple_synth
     Tone::Synth::Simple.new
   end
 
-  def membrane
+  def membrane_synth
     Tone::Synth::Membrane.new
   end
 
-  def am
+  def am_synth
     Tone::Synth::AM.new
   end
 
-  def fm
+  def fm_synth
     Tone::Synth::FM.new
   end
 
-  def duo
+  def duo_synth
     Tone::Synth::Duo.new
   end
 
-  def mono
+  def mono_synth
     Tone::Synth::Mono.new
   end
 
-  def pluck
+  def pluck_synth
     Tone::Synth::Pluck.new
   end
 
-  def poly
-    Tone::Synth::Poly.new
+  def poly_synth(&block)
+    Tone::Synth::Poly.new.tap do |tone_synth|
+      NegaSonic::Synth.new(tone_synth).instance_eval(&block)
+    end
   end
 end
 
 module NegaSonic
+  class Synth
+    def initialize(synth)
+      @synth = synth
+      @effects = Effects.new
+    end
+
+    def effects(&block)
+      @effects.instance_eval(&block)
+      @synth.chain(*@effects.list)
+    end
+  end
+
+  class Effects
+    attr_reader :list
+
+    def initialize
+      @list = []
+    end
+
+    def vibrato
+      @list << Tone::Effect::Vibrato.new
+    end
+
+    def distortion
+      @list << Tone::Effect::Distortion.new
+    end
+  end
+
   module Looped
     def self.start(looped_element)
       looped_element.start(0)
@@ -221,7 +251,7 @@ class Tone
 
     class Distortion < Base
       def initialize
-        super `new Tone.Distortion()`
+        super `new Tone.Distortion(0.8)`
       end
     end
   end
