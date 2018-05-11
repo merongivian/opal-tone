@@ -7,10 +7,15 @@ module Kernel
     the_loop.start
   end
 
-  def sequence(synth: :simple, duration: , &block)
+  def sequence(synth: :simple, interval: , &block)
     the_loop = Candy::Looped::Sequence.new(Kernel.send(synth))
     the_loop.instance_eval(&block)
-    the_loop.start(duration)
+    the_loop.start(interval)
+  end
+
+  def pattern(synth: :simple, interval:, type:, notes:)
+    Candy::Looped::Pattern.new(Kernel.send(synth), notes, type)
+                          .start(interval, type)
   end
 
   def simple
@@ -100,10 +105,57 @@ module Candy
         Looped.start(Tone::Sequence.new @segments, duration, &block)
       end
     end
+
+    class Pattern
+      TYPES = {
+        random: 'random',
+        random_walk: 'randomWalk',
+        random_once: 'randomOnce',
+        up: 'up',
+        down: 'down',
+        up_down: 'upDown',
+        down_up: 'downUp',
+        alternate_up: 'alternateUp',
+        alternate_down: 'alternateDown'
+      }
+
+      def initialize(synth, notes = [])
+        @synth = synth
+        @notes = notes
+      end
+
+      def start(duration, type)
+        raise 'invalid pattern type' unless TYPES.keys.include?(type)
+
+        do_start(duration, TYPES[type]) do |time, note|
+          @synth.trigger_attack_release(note, duration, time)
+        end
+      end
+
+      private
+
+      def do_start(duration, type, &block)
+        pattern = Tone::Pattern.new(@notes, type, &block)
+        pattern.interval = duration
+        Looped.start(pattern)
+      end
+    end
   end
 end
 
 class Tone
+  class Pattern
+    include Native
+
+    alias_native :start
+    native_writer :loop
+    native_writer :interval
+
+    def initialize(notes, type, &block)
+      super `new Tone.Pattern(#{block.to_n}, #{notes.to_n}, type)`
+    end
+  end
+
   class Part
     include Native
 
