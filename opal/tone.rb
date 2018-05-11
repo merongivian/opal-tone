@@ -199,13 +199,52 @@ class Tone
     end
   end
 
+  module Effect
+    class Base
+      include Native
+
+      alias_native :connect
+      alias_native :to_master
+    end
+
+    class Chorus < Base
+      def initialize
+        super `new Tone.Chorus()`
+      end
+    end
+
+    class Vibrato < Base
+      def initialize
+        super `new Tone.Vibrato()`
+      end
+    end
+
+    class Distortion < Base
+      def initialize
+        super `new Tone.Distortion()`
+      end
+    end
+  end
+
   module Synth
     class Base
       include Native
 
+      alias_native :connect
       alias_native :trigger_attack_release, :triggerAttackRelease
       alias_native :trigger_attack, :triggerAttack
       alias_native :trigger_release, :triggerRelease
+
+      def chain(*effects)
+        last_node_connected = self
+
+        effects.each do |effect|
+          last_node_connected.connect(effect.to_n)
+          last_node_connected = effect
+        end
+
+        last_node_connected.connect(`Tone.Master`)
+      end
     end
 
     class AM < Base
