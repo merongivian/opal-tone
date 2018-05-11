@@ -2,19 +2,19 @@ require 'vendor/tone'
 
 module Kernel
   def part(synth: :simple, &block)
-    the_loop = Candy::Looped::Part.new(Kernel.send(synth))
+    the_loop = NegaSonic::Looped::Part.new(Kernel.send(synth))
     the_loop.instance_eval(&block)
     the_loop.start
   end
 
   def sequence(synth: :simple, interval: , &block)
-    the_loop = Candy::Looped::Sequence.new(Kernel.send(synth))
+    the_loop = NegaSonic::Looped::Sequence.new(Kernel.send(synth))
     the_loop.instance_eval(&block)
     the_loop.start(interval)
   end
 
   def pattern(synth: :simple, interval:, type:, notes:)
-    Candy::Looped::Pattern.new(Kernel.send(synth), notes, type)
+    NegaSonic::Looped::Pattern.new(Kernel.send(synth), notes, type)
                           .start(interval, type)
   end
 
@@ -51,7 +51,7 @@ module Kernel
   end
 end
 
-module Candy
+module NegaSonic
   module Looped
     def self.start(looped_element)
       looped_element.start(0)
