@@ -51,11 +51,11 @@ module Kernel
   end
 end
 
-module NegaSonic
+class NegaSonic
   class Synth
     def self.with_dsl(tone_synth, &block)
-      tone_synth.tap do |tone_synth|
-        new(tone_synth).instance_eval(&block)
+      tone_synth.tap do |synth|
+        new(synth).instance_eval(&block)
       end
     end
 
@@ -77,12 +77,40 @@ module NegaSonic
       @list = []
     end
 
-    def vibrato
-      @list << Tone::Effect::Vibrato.new
+    def vibrato(**opts)
+      @list << Tone::Effect::Vibrato.new(**opts)
     end
 
-    def distortion
-      @list << Tone::Effect::Distortion.new
+    def distortion(**opts)
+      @list << Tone::Effect::Distortion.new(**opts)
+    end
+
+    def chorus(**opts)
+      @list << Tone::Effect::Chorus.new(**opts)
+    end
+
+    def tremolo(**opts)
+      @list << Tone::Effect::Tremolo.new(**opts)
+    end
+
+    def feedback_delay(**opts)
+      @list << Tone::Effect::FeedbackDelay.new(**opts)
+    end
+
+    def freeverb(**opts)
+      @list << Tone::Effect::Freeverb.new(**opts)
+    end
+
+    def jc_reverb(**opts)
+      @list << Tone::Effect::JCReverb.new(**opts)
+    end
+
+    def phaser(**opts)
+      @list << Tone::Effect::Phaser.new(**opts)
+    end
+
+    def ping_pong_delay(**opts)
+      @list << Tone::Effect::PingPongDelay.new(**opts)
     end
   end
 
@@ -251,20 +279,56 @@ class Tone
     end
 
     class Chorus < Base
-      def initialize
-        super `new Tone.Chorus()`
+      def initialize(frequency: 1.5, delay_time: 3.5, depth: 0.7)
+        super `new Tone.Chorus(frequency, delay_time, depth)`
       end
     end
 
     class Vibrato < Base
-      def initialize
-        super `new Tone.Vibrato()`
+      def initialize(frequency: 5, depth: 0.1)
+        super `new Tone.Vibrato(frequency, depth)`
       end
     end
 
     class Distortion < Base
-      def initialize
-        super `new Tone.Distortion(0.8)`
+      def initialize(value: 0.4)
+        super `new Tone.Distortion(value)`
+      end
+    end
+
+    class Tremolo < Base
+      def initialize(frequency: 10, depth: 0.5)
+        super `new Tone.Tremolo(frequency, depth)`
+      end
+    end
+
+    class FeedbackDelay < Base
+      def initialize(delay_time: 0.25, feedback: 0.5)
+        super `new Tone.FeedbackDelay(delay_time, feedback)`
+      end
+    end
+
+    class Freeverb < Base
+      def initialize(room_size: 0.7, dampening: 3000)
+        super `new Tone.Freeverb(room_size, dampening)`
+      end
+    end
+
+    class JCReverb < Base
+      def initialize(room_size: 0.5)
+        super `new Tone.JCReverb(room_size)`
+      end
+    end
+
+    class Phaser < Base
+      def initialize(frequency: 0.5, octaves: 3, base_frequency: 350)
+        super `new Tone.Phaser(frequency, octaves, base_frequency)`
+      end
+    end
+
+    class PingPongDelay < Base
+      def initialize(delay_time: 0.25, feedback: 1)
+        super `new Tone.PingPongDelay(delay_time, feedback)`
       end
     end
   end
