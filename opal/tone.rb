@@ -107,7 +107,7 @@ module NegaSonic
       private
 
       def do_start(&block)
-        Looped.start(Tone::Part.new @definitions, &block)
+        Looped.start(Tone::Event::Part.new @definitions, &block)
       end
     end
 
@@ -130,7 +130,7 @@ module NegaSonic
       private
 
       def do_start(duration, &block)
-        Looped.start(Tone::Sequence.new @segments, duration, &block)
+        Looped.start(Tone::Event::Sequence.new @segments, duration, &block)
       end
     end
 
@@ -163,7 +163,7 @@ module NegaSonic
       private
 
       def do_start(duration, type, &block)
-        pattern = Tone::Pattern.new(@notes, type, &block)
+        pattern = Tone::Event::Pattern.new(@notes, type, &block)
         pattern.interval = duration
         Looped.start(pattern)
       end
@@ -172,65 +172,57 @@ module NegaSonic
 end
 
 class Tone
-  class Pattern
-    include Native
+  module Event
+    class Base
+      include Native
 
-    alias_native :start
-    native_writer :loop
-    native_writer :interval
-
-    def initialize(notes, type, &block)
-      super `new Tone.Pattern(#{block.to_n}, #{notes.to_n}, type)`
+      alias_native :start
+      native_writer :loop
     end
-  end
 
-  class Part
-    include Native
+    class Pattern < Base
+      native_writer :interval
 
-    alias_native :start
-    native_writer :loop
-
-    def initialize(definitions, &block)
-      super `new Tone.Part(#{block.to_n}, #{definitions.to_n})`
+      def initialize(notes, type, &block)
+        super `new Tone.Pattern(#{block.to_n}, #{notes.to_n}, type)`
+      end
     end
-  end
 
-  class Sequence
-    include Native
-
-    alias_native :start
-    native_writer :loop
-
-    def initialize(segments, duration, &block)
-      super `new Tone.Sequence(#{block.to_n}, #{segments.to_n}, duration)`
+    class Part < Base
+      def initialize(definitions, &block)
+        super `new Tone.Part(#{block.to_n}, #{definitions.to_n})`
+      end
     end
-  end
 
-  class Loop
-    include Native
+    class Sequence < Base
+      def initialize(segments, duration, &block)
+        super `new Tone.Sequence(#{block.to_n}, #{segments.to_n}, duration)`
+      end
+    end
 
-    alias_native :start
-    alias_native :stop
-
-    def initialize(interval, &block)
-      super `new Tone.Loop(#{block.to_n}, interval)`
+    class Loop < Base
+      def initialize(interval, &block)
+        super `new Tone.Loop(#{block.to_n}, interval)`
+      end
     end
   end
 
   class Transport
-    def self.start(time = nil)
-      if time
-        `Tone.Transport.start(time)`
-      else
-        `Tone.Transport.start()`
+    class << self
+      def start(time = nil)
+        if time
+          `Tone.Transport.start(time)`
+        else
+          `Tone.Transport.start()`
+        end
       end
-    end
 
-    def self.stop(time = nil)
-      if time
-        `Tone.Transport.stop(time)`
-      else
-        `Tone.Transport.stop()`
+      def stop(time = nil)
+        if time
+          `Tone.Transport.stop(time)`
+        else
+          `Tone.Transport.stop()`
+        end
       end
     end
   end
