@@ -14,7 +14,7 @@ module Kernel
   end
 
   def pattern(synth: simple_synth, interval:, type:, notes:)
-    NegaSonic::Looped::Pattern.new(synth, notes, type)
+    NegaSonic::Looped::Pattern.new(synth, notes)
                               .start(interval, type)
   end
 
@@ -86,8 +86,6 @@ module NegaSonic
     def self.start(looped_element)
       looped_element.start(0)
       looped_element.loop = true
-
-      Tone::Transport.start
     end
 
     class Part
@@ -220,12 +218,20 @@ class Tone
   end
 
   class Transport
-    def self.start(time)
-      `Tone.Transport.start(time)`
+    def self.start(time = nil)
+      if time
+        `Tone.Transport.start(time)`
+      else
+        `Tone.Transport.start()`
+      end
     end
 
-    def self.stop(time)
-      `Tone.Transport.stop(time)`
+    def self.stop(time = nil)
+      if time
+        `Tone.Transport.stop(time)`
+      else
+        `Tone.Transport.stop()`
+      end
     end
   end
 
