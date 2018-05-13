@@ -18,43 +18,47 @@ module Kernel
                               .start(interval, type)
   end
 
-  def simple_synth
-    Tone::Synth::Simple.new
+  def simple_synth(&block)
+    NegaSonic::Synth.with_dsl(Tone::Synth::Simple.new, &block)
   end
 
-  def membrane_synth
-    Tone::Synth::Membrane.new
+  def membrane_synth(&block)
+    NegaSonic::Synth.with_dsl(Tone::Synth::Membrane.new, &block)
   end
 
-  def am_synth
-    Tone::Synth::AM.new
+  def am_synth(&block)
+    NegaSonic::Synth.with_dsl(Tone::Synth::AM.new, &block)
   end
 
-  def fm_synth
-    Tone::Synth::FM.new
+  def fm_synth(&block)
+    NegaSonic::Synth.with_dsl(Tone::Synth::FM.new, &block)
   end
 
-  def duo_synth
-    Tone::Synth::Duo.new
+  def duo_synth(&block)
+    NegaSonic::Synth.with_dsl(Tone::Synth::Duo.new, &block)
   end
 
-  def mono_synth
-    Tone::Synth::Mono.new
+  def mono_synth(&block)
+    NegaSonic::Synth.with_dsl(Tone::Synth::Mono.new, &block)
   end
 
-  def pluck_synth
-    Tone::Synth::Pluck.new
+  def pluck_synth(&block)
+    NegaSonic::Synth.with_dsl(Tone::Synth::Pluck.new, &block)
   end
 
   def poly_synth(&block)
-    Tone::Synth::Poly.new.tap do |tone_synth|
-      NegaSonic::Synth.new(tone_synth).instance_eval(&block)
-    end
+    NegaSonic::Synth.with_dsl(Tone::Synth::Poly.new, &block)
   end
 end
 
 module NegaSonic
   class Synth
+    def self.with_dsl(tone_synth, &block)
+      tone_synth.tap do |tone_synth|
+        new(tone_synth).instance_eval(&block)
+      end
+    end
+
     def initialize(synth)
       @synth = synth
       @effects = Effects.new
