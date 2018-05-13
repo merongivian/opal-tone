@@ -83,9 +83,19 @@ module NegaSonic
   end
 
   module Looped
-    def self.start(looped_element)
-      looped_element.start(0)
-      looped_element.loop = true
+    @events = []
+
+    class << self
+      def start_event(looped_element)
+        looped_element.start(0)
+        looped_element.loop = true
+        @events << looped_element
+      end
+
+      def stop_all_events
+        @events.each(&:dispose)
+        @events = []
+      end
     end
 
     class Part
@@ -107,7 +117,7 @@ module NegaSonic
       private
 
       def do_start(&block)
-        Looped.start(Tone::Event::Part.new @definitions, &block)
+        Looped.start_event(Tone::Event::Part.new @definitions, &block)
       end
     end
 
@@ -130,7 +140,7 @@ module NegaSonic
       private
 
       def do_start(duration, &block)
-        Looped.start(Tone::Event::Sequence.new @segments, duration, &block)
+        Looped.start_event(Tone::Event::Sequence.new @segments, duration, &block)
       end
     end
 
@@ -165,7 +175,7 @@ module NegaSonic
       def do_start(duration, type, &block)
         pattern = Tone::Event::Pattern.new(@notes, type, &block)
         pattern.interval = duration
-        Looped.start(pattern)
+        Looped.start_event(pattern)
       end
     end
   end
@@ -177,6 +187,7 @@ class Tone
       include Native
 
       alias_native :start
+      alias_native :dispose
       native_writer :loop
     end
 
