@@ -51,7 +51,18 @@ module Kernel
   end
 end
 
-class NegaSonic
+module NegaSonic
+  @events = []
+
+  class << self
+    attr_accessor :events
+
+    def dispose_events
+      @events.each(&:dispose)
+      @events = []
+    end
+  end
+
   class Synth
     def self.with_dsl(tone_synth, &block)
       tone_synth.tap do |synth|
@@ -115,19 +126,10 @@ class NegaSonic
   end
 
   module Looped
-    @events = []
-
-    class << self
-      def start_event(looped_element)
-        looped_element.start(0)
-        looped_element.loop = true
-        @events << looped_element
-      end
-
-      def stop_all_events
-        @events.each(&:dispose)
-        @events = []
-      end
+    def self.start_event(looped_element)
+      looped_element.start(0)
+      looped_element.loop = true
+      NegaSonic.events << looped_element
     end
 
     class Part
