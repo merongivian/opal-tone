@@ -72,13 +72,12 @@ module NegaSonic
   class Synth
     def self.with_dsl(tone_synth, &block)
       tone_synth.tap do |synth|
-        negasonic_synth = new(synth)
-        negasonic_synth.instance_eval(&block)
-        NegaSonic.synths << negasonic_synth
+        new(synth).instance_eval(&block)
       end
     end
 
     def initialize(synth)
+      NegaSonic.synths << self
       @synth = synth
       @effects = Effects.new
     end
