@@ -53,20 +53,28 @@ end
 
 module NegaSonic
   @events = []
+  @synths = []
 
   class << self
-    attr_accessor :events
+    attr_accessor :events, :synths
 
     def dispose_events
       @events.each(&:dispose)
       @events = []
+    end
+
+    def dispose_synths
+      @synths.each(&:dispose)
+      @synths = []
     end
   end
 
   class Synth
     def self.with_dsl(tone_synth, &block)
       tone_synth.tap do |synth|
-        new(synth).instance_eval(&block)
+        negasonic_synth = new(synth)
+        negasonic_synth.instance_eval(&block)
+        NegaSonic.synths << negasonic_synth
       end
     end
 
@@ -79,10 +87,22 @@ module NegaSonic
       @effects.instance_eval(&block)
       @synth.chain(*@effects.list)
     end
+
+    def dispose
+      @synth.dispose
+      dispose_effects
+    end
+
+    private
+
+    def dispose_effects
+      @effects.list.each(&:dispose)
+      @effects.list = []
+    end
   end
 
   class Effects
-    attr_reader :list
+    attr_accessor :list
 
     def initialize
       @list = []
@@ -269,6 +289,10 @@ class Tone
           `Tone.Transport.stop()`
         end
       end
+
+      def cancel
+        `Tone.Transport.cancel()`
+      end
     end
   end
 
@@ -276,6 +300,7 @@ class Tone
     class Base
       include Native
 
+      alias_native :dispose
       alias_native :connect
       alias_native :to_master
     end
@@ -339,6 +364,7 @@ class Tone
     class Base
       include Native
 
+      alias_native :dispose
       alias_native :connect
       alias_native :trigger_attack_release, :triggerAttackRelease
       alias_native :trigger_attack, :triggerAttack
