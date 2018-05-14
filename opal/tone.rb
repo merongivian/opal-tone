@@ -19,35 +19,43 @@ module Kernel
   end
 
   def simple_synth(&block)
-    NegaSonic::Synth.with_dsl(Tone::Synth::Simple.new, &block)
+    @simple_synth ||= Tone::Synth::Simple.new
+    NegaSonic::Synth.with_dsl(@simple_synth, &block)
   end
 
   def membrane_synth(&block)
-    NegaSonic::Synth.with_dsl(Tone::Synth::Membrane.new, &block)
+    @membrane_synth ||= Tone::Synth::Membrane.new
+    NegaSonic::Synth.with_dsl(@membrane_synth, &block)
   end
 
   def am_synth(&block)
-    NegaSonic::Synth.with_dsl(Tone::Synth::AM.new, &block)
+    @am_synth ||= Tone::Synth::AM.new
+    NegaSonic::Synth.with_dsl(@am_synth, &block)
   end
 
   def fm_synth(&block)
-    NegaSonic::Synth.with_dsl(Tone::Synth::FM.new, &block)
+    @fm_synth ||= Tone::Synth::FM.new
+    NegaSonic::Synth.with_dsl(@fm_synth, &block)
   end
 
   def duo_synth(&block)
-    NegaSonic::Synth.with_dsl(Tone::Synth::Duo.new, &block)
+    @duo_synth ||= Tone::Synth::Duo.new
+    NegaSonic::Synth.with_dsl(@duo_synth, &block)
   end
 
   def mono_synth(&block)
-    NegaSonic::Synth.with_dsl(Tone::Synth::Mono.new, &block)
+    @mono_synth||= Tone::Synth::Mono.new
+    NegaSonic::Synth.with_dsl(@mono_synth, &block)
   end
 
   def pluck_synth(&block)
-    NegaSonic::Synth.with_dsl(Tone::Synth::Pluck.new, &block)
+    @pluck_synth||= Tone::Synth::Pluck.new
+    NegaSonic::Synth.with_dsl(@pluck_synth, &block)
   end
 
   def poly_synth(&block)
-    NegaSonic::Synth.with_dsl(Tone::Synth::Poly.new, &block)
+    @poly_synth ||= Tone::Synth::Poly.new
+    NegaSonic::Synth.with_dsl(@poly_synth, &block)
   end
 end
 
@@ -63,8 +71,8 @@ module NegaSonic
       @events = []
     end
 
-    def dispose_synths
-      @synths.each(&:dispose)
+    def dispose_synths_effects
+      @synths.each(&:dispose_effects)
       @synths = []
     end
   end
@@ -86,15 +94,6 @@ module NegaSonic
       @effects.instance_eval(&block)
       @synth.chain(*@effects.list)
     end
-
-    # TODO: seems that tone.js doesnt dispose the gain nodes,
-    # maybe this could be solved by adding a custome Tone.Volume node
-    def dispose
-      @synth.dispose
-      dispose_effects
-    end
-
-    private
 
     def dispose_effects
       @effects.list.each(&:dispose)
@@ -365,7 +364,7 @@ class Tone
     class Base
       include Native
 
-      alias_native :dispose
+      alias_native :volume
       alias_native :connect
       alias_native :trigger_attack_release, :triggerAttackRelease
       alias_native :trigger_attack, :triggerAttack
