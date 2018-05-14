@@ -87,6 +87,8 @@ module NegaSonic
       @synth.chain(*@effects.list)
     end
 
+    # TODO: seems that tone.js doesnt dispose the gain nodes,
+    # maybe this could be solved by adding a custome Tone.Volume node
     def dispose
       @synth.dispose
       dispose_effects
