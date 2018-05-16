@@ -14,25 +14,23 @@ module Kernel
   end
 
   def pattern(instrument:, interval:, type:, notes:)
-    NegaSonic::LoopedEvent::Pattern.new(instrument.synth_node, notes)
+    the_instrument = NegaSonic::Instrument.find(instrument)
+
+    NegaSonic::LoopedEvent::Pattern.new(the_instrument.input_node, notes)
                                    .start(interval, type)
   end
 
   def instrument(name, synth:, &block)
-    NegaSonic::Instrument.new(name, synth).tap do |instrument|
-      instrument.instance_eval(&block)
-      instrument.connect_nodes
+    instrument = NegaSonic::Instrument.find(name) || NegaSonic::Instrument.add(name)
+
+    instrument.tap do |i|
+      i.instance_eval(&block)
+      i.connect_nodes(synth)
     end
   end
 end
 
 module NegaSonic
-  @instruments = {}
-
-  class << self
-    attr_accessor :instruments
-  end
-
   module Nodes
     module Synth
       class << self
@@ -73,119 +71,132 @@ module NegaSonic
     module Effect
       class << self
         def vibrato
-          Tone::Effect::Vibrato.new
+          @vibrato ||= Tone::Effect::Vibrato.new
         end
 
         def distortion
-          Tone::Effect::Distortion.new
+          @distortion ||= Tone::Effect::Distortion.new
         end
 
         def chorus
-          Tone::Effect::Chorus.new
+          @choruse ||= Tone::Effect::Chorus.new
         end
 
         def tremolo
-          Tone::Effect::Tremolo.new
+          @tremolo ||= Tone::Effect::Tremolo.new
         end
 
         def feedback_delay
-          Tone::Effect::FeedbackDelay.new
+          @feedback_delay ||= Tone::Effect::FeedbackDelay.new
         end
 
         def freeverb
-          Tone::Effect::Freeverb.new
+          @freeverb ||= Tone::Effect::Freeverb.new
         end
 
         def jc_reverb
-          Tone::Effect::JCReverb.new
+          @jc_reverb ||= Tone::Effect::JCReverb.new
         end
 
         def phaser
-          Tone::Effect::Phaser.new
+          @phaser ||= Tone::Effect::Phaser.new
         end
 
         def ping_pong_delay
-          Tone::Effect::PingPongDelay.new
+          @ping_pong_delay ||= Tone::Effect::PingPongDelay.new
         end
       end
     end
   end
 
   class Instrument
-    attr_reader :synth_node
+    @all = []
 
-    def initialize(name, synth_type)
+    class << self
+      attr_accessor :all
+
+      def find(name)
+        @all.find do |instrument|
+          instrument.name == name
+        end
+      end
+
+      def add(name)
+        new(name).tap do |instrument|
+          @all << instrument
+        end
+      end
+    end
+
+    attr_reader :input_node, :name
+
+    def initialize(name)
       @name = name
-      @synth_type = synth_type
-      @effects = Effects.new
-
-      @nodes_names = []
+      @nodes = []
+      @effects_dsl = EffectsDSL.new
     end
 
     def effects(&block)
-      @effects.instance_eval(&block)
+      @effects_dsl.reload
+      @effects_dsl.instance_eval(&block)
     end
 
-    def connect_nodes
-      @synth_node = Nodes::Synth.send(@synth_type)
-      @nodes_names = [@synth_type, @effects.nodes_names].flatten
+    def connect_nodes(synth_type)
+      @input_node = Nodes::Synth.send(synth_type)
+      new_nodes = [@input_node, @effects_dsl.nodes].flatten
 
-      previous_instrument_nodes = NegaSonic.instruments[@name]
-
-      if !previous_instrument_nodes || previous_instrument_nodes != @nodes_names
-        @synth_node.chain(*@effects.nodes)
-        NegaSonic.instruments[@name] = @nodes_names
+      if @nodes != new_nodes
+        @input_node.chain(*@effects_dsl.nodes)
+        @nodes = new_nodes
       end
     end
   end
 
-  class Effects
-    attr_reader :nodes_names
+  class EffectsDSL
+    attr_reader :nodes
 
     def initialize
-      @nodes_names = []
+      @nodes = []
     end
 
-    def nodes
-      @nodes_names.map do |node_name|
-        Nodes::Effect.send(node_name)
-      end
+    def reload
+      @nodes = []
     end
 
     def vibrato
-      @nodes_names << :vibrato
+      @nodes << Nodes::Effect.send(__method__)
     end
 
     def distortion
-      @nodes_names << :distortion
+      @nodes << Nodes::Effect.send(__method__)
     end
 
     def chorus
-      @nodes_names << :chorus
+      @nodes << Nodes::Effect.send(__method__)
     end
 
     def tremolo
-      @nodes_names << :tremolo
+      @nodes << Nodes::Effect.send(__method__)
     end
 
     def feedback_delay
-      @nodes_names << :feedback_delay
+      @nodes << Nodes::Effect.send(__method__)
     end
 
     def freeverb
-      @nodes_names << :freeverb
+      @nodes << Nodes::Effect.send(__method__)
     end
 
     def jc_reverb
-      @nodes_names << :jc_reverb
+      @nodes << Nodes::Effect.send(__method__)
     end
 
     def phaser
-      @nodes_names << :phaser
+      @nodes << Nodes::Effect.send(__method__)
     end
 
     def ping_pong_delay
-      @nodes_names << :ping_pong_delay
+      @nodes << Nodes::Effect.send(__method__)
     end
   end
 
