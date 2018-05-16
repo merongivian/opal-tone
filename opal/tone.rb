@@ -2,20 +2,20 @@ require 'vendor/tone'
 
 module Kernel
   def part(synth:, &block)
-    the_loop = NegaSonic::Looped::Part.new(synth)
+    the_loop = NegaSonic::LoopedEvent::Part.new(synth)
     the_loop.instance_eval(&block)
     the_loop.start
   end
 
   def sequence(synth:, interval: , &block)
-    the_loop = NegaSonic::Looped::Sequence.new(synth)
+    the_loop = NegaSonic::LoopedEvent::Sequence.new(synth)
     the_loop.instance_eval(&block)
     the_loop.start(interval)
   end
 
   def pattern(instrument:, interval:, type:, notes:)
-    NegaSonic::Looped::Pattern.new(instrument.synth_node, notes)
-                              .start(interval, type)
+    NegaSonic::LoopedEvent::Pattern.new(instrument.synth_node, notes)
+                                   .start(interval, type)
   end
 
   def instrument(name, synth:, &block)
@@ -27,16 +27,10 @@ module Kernel
 end
 
 module NegaSonic
-  @events = []
   @instruments = {}
 
   class << self
-    attr_accessor :events, :instruments
-
-    def dispose_events
-      @events.each(&:dispose)
-      @events = []
-    end
+    attr_accessor :instruments
   end
 
   module Nodes
@@ -134,8 +128,8 @@ module NegaSonic
 
     def connect_nodes
       @synth_node = Nodes::Synth.send(@synth_type)
-
       @nodes_names = [@synth_type, @effects.nodes_names].flatten
+
       previous_instrument_nodes = NegaSonic.instruments[@name]
 
       if !previous_instrument_nodes || previous_instrument_nodes != @nodes_names
@@ -195,11 +189,22 @@ module NegaSonic
     end
   end
 
-  module Looped
-    def self.start_event(looped_element)
-      looped_element.start(0)
-      looped_element.loop = true
-      NegaSonic.events << looped_element
+  module LoopedEvent
+    @events = []
+
+    class << self
+      attr_accessor :events
+
+      def dispose_all
+        @events.each(&:dispose)
+        @events = []
+      end
+
+      def start(looped_element)
+        looped_element.start(0)
+        looped_element.loop = true
+        @events << looped_element
+      end
     end
 
     class Part
@@ -221,7 +226,7 @@ module NegaSonic
       private
 
       def do_start(&block)
-        Looped.start_event(Tone::Event::Part.new @definitions, &block)
+        LoopedEvent.start(Tone::Event::Part.new @definitions, &block)
       end
     end
 
@@ -244,7 +249,7 @@ module NegaSonic
       private
 
       def do_start(duration, &block)
-        Looped.start_event(Tone::Event::Sequence.new @segments, duration, &block)
+        LoopedEvent.start(Tone::Event::Sequence.new @segments, duration, &block)
       end
     end
 
@@ -279,7 +284,7 @@ module NegaSonic
       def do_start(duration, type, &block)
         pattern = Tone::Event::Pattern.new(@notes, type, &block)
         pattern.interval = duration
-        Looped.start_event(pattern)
+        LoopedEvent.start(pattern)
       end
     end
   end
