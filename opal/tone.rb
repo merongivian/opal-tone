@@ -21,7 +21,8 @@ module Kernel
   end
 
   def instrument(name, synth:, &block)
-    instrument = NegaSonic::Instrument.find(name) || NegaSonic::Instrument.add(name)
+    instrument = NegaSonic::Instrument.find(name) ||
+                 NegaSonic::Instrument.add(name)
 
     instrument.tap do |i|
       i.instance_eval(&block)
@@ -35,35 +36,35 @@ module NegaSonic
     module Synth
       class << self
         def simple
-          @simple ||= Tone::Synth::Simple.new
+          Tone::Synth::Simple.new
         end
 
         def membrane
-          @membrane ||= Tone::Synth::Membrane.new
+          Tone::Synth::Membrane.new
         end
 
         def am
-          @am ||= Tone::Synth::AM.new
+          Tone::Synth::AM.new
         end
 
         def fm
-          @fm ||= Tone::Synth::FM.new
+          Tone::Synth::FM.new
         end
 
         def duo
-          @duo ||= Tone::Synth::Duo.new
+          Tone::Synth::Duo.new
         end
 
         def mono
-          @mono ||= Tone::Synth::Mono.new
+          Tone::Synth::Mono.new
         end
 
         def pluck
-          @pluck ||= Tone::Synth::Pluck.new
+          Tone::Synth::Pluck.new
         end
 
         def poly
-          @poly ||= Tone::Synth::Poly.new
+          Tone::Synth::Poly.new
         end
       end
     end
@@ -71,39 +72,39 @@ module NegaSonic
     module Effect
       class << self
         def vibrato
-          @vibrato ||= Tone::Effect::Vibrato.new
+          Tone::Effect::Vibrato.new
         end
 
         def distortion
-          @distortion ||= Tone::Effect::Distortion.new
+          Tone::Effect::Distortion.new
         end
 
         def chorus
-          @choruse ||= Tone::Effect::Chorus.new
+          Tone::Effect::Chorus.new
         end
 
         def tremolo
-          @tremolo ||= Tone::Effect::Tremolo.new
+          Tone::Effect::Tremolo.new
         end
 
         def feedback_delay
-          @feedback_delay ||= Tone::Effect::FeedbackDelay.new
+          Tone::Effect::FeedbackDelay.new
         end
 
         def freeverb
-          @freeverb ||= Tone::Effect::Freeverb.new
+          Tone::Effect::Freeverb.new
         end
 
         def jc_reverb
-          @jc_reverb ||= Tone::Effect::JCReverb.new
+          Tone::Effect::JCReverb.new
         end
 
         def phaser
-          @phaser ||= Tone::Effect::Phaser.new
+          Tone::Effect::Phaser.new
         end
 
         def ping_pong_delay
-          @ping_pong_delay ||= Tone::Effect::PingPongDelay.new
+          Tone::Effect::PingPongDelay.new
         end
       end
     end
@@ -142,10 +143,11 @@ module NegaSonic
     end
 
     def connect_nodes(synth_type)
-      @input_node = Nodes::Synth.send(synth_type)
-      new_nodes = [@input_node, @effects_dsl.nodes].flatten
+      new_synth = Nodes::Synth.send(synth_type)
+      new_nodes = [new_synth, @effects_dsl.nodes].flatten
 
       if @nodes != new_nodes
+        @input_node = new_synth
         @input_node.chain(*@effects_dsl.nodes)
         @nodes = new_nodes
       end
@@ -372,56 +374,137 @@ class Tone
     end
 
     class Chorus < Base
+      attr_reader :frequency, :delay_time, :depth
+
       def initialize(frequency: 1.5, delay_time: 3.5, depth: 0.7)
+        @frequency = frequency
+        @delay_time = delay_time
+        @depth = depth
         super `new Tone.Chorus(frequency, delay_time, depth)`
+      end
+
+      def ==(other)
+        frequency == other.frequency &&
+          delay_time == other.delay_time &&
+            depth == other.depth
       end
     end
 
     class Vibrato < Base
+      attr_reader :frequency, :depth
+
       def initialize(frequency: 5, depth: 0.1)
+        @frequency = frequency
+        @depth = depth
         super `new Tone.Vibrato(frequency, depth)`
+      end
+
+      def ==(other)
+        frequency == other.frequency &&
+          depth == other.depth
       end
     end
 
     class Distortion < Base
+      attr_reader :value
+
       def initialize(value: 0.4)
+        @value = value
         super `new Tone.Distortion(value)`
+      end
+
+      def ==(other)
+        value == other.value
       end
     end
 
     class Tremolo < Base
+      attr_reader :frequency, :depth
+
       def initialize(frequency: 10, depth: 0.5)
+        @frequency = frequency
+        @depth = depth
         super `new Tone.Tremolo(frequency, depth)`
+      end
+
+      def ==(other)
+        frequency == other.frequency &&
+          depth == other.depth
       end
     end
 
     class FeedbackDelay < Base
+      attr_reader :delay_time, :feedback
+
       def initialize(delay_time: 0.25, feedback: 0.5)
+        @delay_time = delay_time
+        @feedback = feedback
         super `new Tone.FeedbackDelay(delay_time, feedback)`
+      end
+
+      def ==(other)
+        delay_time == other.delay_time &&
+          feedback == other.feedback
       end
     end
 
     class Freeverb < Base
+      attr_reader :room_size, :dampening
+
       def initialize(room_size: 0.7, dampening: 3000)
+        @room_size = room_size
+        @dampening = dampening
         super `new Tone.Freeverb(room_size, dampening)`
+      end
+
+      def ==(other)
+        room_size == other.room_size &&
+          dampening == other.dampening
       end
     end
 
     class JCReverb < Base
+      attr_reader :room_size
+
       def initialize(room_size: 0.5)
+        @room_size = room_size
         super `new Tone.JCReverb(room_size)`
+      end
+
+      def ==(other)
+        room_size == other.room_size
       end
     end
 
     class Phaser < Base
+      attr_reader :frequency, :octaves, :base_frequency
+
       def initialize(frequency: 0.5, octaves: 3, base_frequency: 350)
+        @frequency = frequency
+        @octaves = octaves
+        @base_frequency = base_frequency
         super `new Tone.Phaser(frequency, octaves, base_frequency)`
+      end
+
+      def ==(other)
+        frequency == other.frequency &&
+          octaves == other.octaves &&
+            base_frequency == other.base_frequency
       end
     end
 
     class PingPongDelay < Base
+      attr_reader :delay_time, :feedback
+
       def initialize(delay_time: 0.25, feedback: 1)
+        @delay_time = delay_time
+        @feedback = feedback
         super `new Tone.PingPongDelay(delay_time, feedback)`
+      end
+
+      def ==(other)
+        delay_time == other.delay_time &&
+            feedback == other.feedback
       end
     end
   end
@@ -430,7 +513,6 @@ class Tone
     class Base
       include Native
 
-      alias_native :volume
       alias_native :connect
       alias_native :trigger_attack_release, :triggerAttackRelease
       alias_native :trigger_attack, :triggerAttack
@@ -445,6 +527,20 @@ class Tone
         end
 
         last_node_connected.connect(`Tone.Master`)
+      end
+
+      def initialize(native, volume: 1)
+        @native = native
+        `#@native.volume.value = volume`
+      end
+
+      def volume
+        `#@native.volume.value`
+      end
+
+      def ==(other)
+        volume == other.volume &&
+          self.class == other.class
       end
     end
 
