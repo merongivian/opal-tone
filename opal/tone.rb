@@ -20,13 +20,15 @@ module Kernel
                                    .start(interval, type)
   end
 
-  def instrument(name, synth:, &block)
+  def instrument(name, synth:, volume: nil, &block)
     instrument = NegaSonic::Instrument.find(name) ||
                  NegaSonic::Instrument.add(name)
 
+    synth_node = NegaSonic::Synth.send(synth, { volume: volume })
+
     instrument.tap do |i|
       i.instance_eval(&block)
-      i.connect_nodes(synth)
+      i.connect_nodes(synth_node)
     end
   end
 end
@@ -34,39 +36,39 @@ end
 module NegaSonic
   module Synth
     class << self
-      def simple
-        Tone::Synth::Simple.new
+      def simple(**opts)
+        Tone::Synth::Simple.new(**opts)
       end
 
-      def membrane
-        Tone::Synth::Membrane.new
+      def membrane(**opts)
+        Tone::Synth::Membrane.new(**opts)
       end
 
-      def am
-        Tone::Synth::AM.new
+      def am(**opts)
+        Tone::Synth::AM.new(**opts)
       end
 
-      def fm
-        Tone::Synth::FM.new
+      def fm(**opts)
+        Tone::Synth::FM.new(**opts)
       end
 
-      def duo
-        Tone::Synth::Duo.new
+      def duo(**opts)
+        Tone::Synth::Duo.new(**opts)
       end
 
-      def mono
-        Tone::Synth::Mono.new
+      def mono(**opts)
+        Tone::Synth::Mono.new(**opts)
       end
 
-      def pluck
-        Tone::Synth::Pluck.new
+      def pluck(**opts)
+        Tone::Synth::Pluck.new(**opts)
       end
 
-      def poly
-        Tone::Synth::Poly.new
+      def poly(**opts)
+        Tone::Synth::Poly.new(**opts)
       end
     end
-end
+  end
 
   class Instrument
     @all = []
@@ -100,8 +102,7 @@ end
       @effects_dsl.instance_eval(&block)
     end
 
-    def connect_nodes(synth_type)
-      new_synth = Synth.send(synth_type)
+    def connect_nodes(new_synth)
       new_nodes = [new_synth, @effects_dsl.nodes].flatten
 
       if @nodes != new_nodes
@@ -526,66 +527,65 @@ class Tone
     end
 
     class AM < Base
-      def initialize
-        super `new Tone.AMSynth().toMaster()`
+      def initialize(**opts)
+        super `new Tone.AMSynth().toMaster()`, **opts
       end
     end
 
     class Duo < Base
-      def initialize
-        super `new Tone.DuoSynth().toMaster()`
+      def initialize(**opts)
+        super `new Tone.DuoSynth().toMaster()`, **opts
       end
     end
 
     class FM < Base
-      def initialize
-        super `new Tone.FMSynth().toMaster()`
+      def initialize(**opts)
+        super `new Tone.FMSynth().toMaster()`, **opts
       end
     end
 
     class Membrane < Base
-      def initialize
-        super `new Tone.MembraneSynth().toMaster()`
+      def initialize(**opts)
+        super `new Tone.MembraneSynth().toMaster()`, **opts
       end
     end
 
     # TODO
     class Metal < Base
-      def initialize
-        super `new Tone.MetalSynth().toMaster()`
+      def initialize(**opts)
+        super `new Tone.MetalSynth().toMaster()`, **opts
       end
     end
 
     class Mono < Base
-      def initialize
-        super `new Tone.MonoSynth().toMaster()`
+      def initialize(**opts)
+        super `new Tone.MonoSynth().toMaster()`, **opts
       end
     end
 
     # TODO
     class Noise < Base
-      def initialize
-        super `new Tone.NoiseSynth().toMaster()`
+      def initialize(**opts)
+        super `new Tone.NoiseSynth().toMaster()`, **opts
       end
     end
 
     class Pluck < Base
-      def initialize
-        super `new Tone.PluckSynth().toMaster()`
+      def initialize(**opts)
+        super `new Tone.PluckSynth().toMaster()`, **opts
       end
     end
 
     class Poly < Base
-      def initialize
-        super `new Tone.PolySynth().toMaster()`
+      def initialize(**opts)
+        super `new Tone.PolySynth().toMaster()`, **opts
       end
     end
 
     class Simple < Base
-      def initialize
-        super `new Tone.Synth().toMaster()`
+      def initialize(**opts)
+        super `new Tone.Synth().toMaster()`, **opts
       end
     end
   end
 end
-
