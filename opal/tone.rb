@@ -129,40 +129,40 @@ end
       @nodes = []
     end
 
-    def vibrato
-      @nodes << Tone::Effect::Vibrato.new
+    def vibrato(**opts)
+      @nodes << Tone::Effect::Vibrato.new(**opts)
     end
 
-    def distortion
-      @nodes << Tone::Effect::Distortion.new
+    def distortion(**opts)
+      @nodes << Tone::Effect::Distortion.new(**opts)
     end
 
-    def chorus
-      @nodes << Tone::Effect::Chorus.new
+    def chorus(**opts)
+      @nodes << Tone::Effect::Chorus.new(**opts)
     end
 
-    def tremolo
-      @nodes << Tone::Effect::Tremolo.new
+    def tremolo(**opts)
+      @nodes << Tone::Effect::Tremolo.new(**opts)
     end
 
-    def feedback_delay
-      @nodes << Tone::Effect::FeedbackDelay.new
+    def feedback_delay(**opts)
+      @nodes << Tone::Effect::FeedbackDelay.new(**opts)
     end
 
-    def freeverb
-      @nodes << Tone::Effect::Freeverb.new
+    def freeverb(**opts)
+      @nodes << Tone::Effect::Freeverb.new(**opts)
     end
 
-    def jc_reverb
-      @nodes << Tone::Effect::JCReverb.new
+    def jc_reverb(**opts)
+      @nodes << Tone::Effect::JCReverb.new(**opts)
     end
 
-    def phaser
-      @nodes << Tone::Effect::Phaser.new
+    def phaser(**opts)
+      @nodes << Tone::Effect::Phaser.new(**opts)
     end
 
-    def ping_pong_delay
-      @nodes << Tone::Effect::PingPongDelay.new
+    def ping_pong_delay(**opts)
+      @nodes << Tone::Effect::PingPongDelay.new(**opts)
     end
   end
 
