@@ -32,43 +32,41 @@ module Kernel
 end
 
 module NegaSonic
-  module Nodes
-    module Synth
-      class << self
-        def simple
-          Tone::Synth::Simple.new
-        end
+  module Synth
+    class << self
+      def simple
+        Tone::Synth::Simple.new
+      end
 
-        def membrane
-          Tone::Synth::Membrane.new
-        end
+      def membrane
+        Tone::Synth::Membrane.new
+      end
 
-        def am
-          Tone::Synth::AM.new
-        end
+      def am
+        Tone::Synth::AM.new
+      end
 
-        def fm
-          Tone::Synth::FM.new
-        end
+      def fm
+        Tone::Synth::FM.new
+      end
 
-        def duo
-          Tone::Synth::Duo.new
-        end
+      def duo
+        Tone::Synth::Duo.new
+      end
 
-        def mono
-          Tone::Synth::Mono.new
-        end
+      def mono
+        Tone::Synth::Mono.new
+      end
 
-        def pluck
-          Tone::Synth::Pluck.new
-        end
+      def pluck
+        Tone::Synth::Pluck.new
+      end
 
-        def poly
-          Tone::Synth::Poly.new
-        end
+      def poly
+        Tone::Synth::Poly.new
       end
     end
-  end
+end
 
   class Instrument
     @all = []
@@ -103,7 +101,7 @@ module NegaSonic
     end
 
     def connect_nodes(synth_type)
-      new_synth = Nodes::Synth.send(synth_type)
+      new_synth = Synth.send(synth_type)
       new_nodes = [new_synth, @effects_dsl.nodes].flatten
 
       if @nodes != new_nodes
