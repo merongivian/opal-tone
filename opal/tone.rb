@@ -1,14 +1,18 @@
 require 'vendor/tone'
 
 module Kernel
-  def part(synth:, &block)
-    the_loop = NegaSonic::LoopedEvent::Part.new(synth)
+  def part(instrument:, &block)
+    the_instrument = NegaSonic::Instrument.find(instrument)
+
+    the_loop = NegaSonic::LoopedEvent::Part.new(the_instrument.input_node)
     the_loop.instance_eval(&block)
     the_loop.start
   end
 
-  def sequence(synth:, interval: , &block)
-    the_loop = NegaSonic::LoopedEvent::Sequence.new(synth)
+  def sequence(instrument:, interval: , &block)
+    the_instrument = NegaSonic::Instrument.find(instrument)
+
+    the_loop = NegaSonic::LoopedEvent::Sequence.new(the_instrument.input_node)
     the_loop.instance_eval(&block)
     the_loop.start(interval)
   end
