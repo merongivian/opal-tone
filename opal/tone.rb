@@ -164,39 +164,39 @@ module NegaSonic
     end
 
     def vibrato
-      @nodes << Nodes::Effect.send(__method__)
+      @nodes << Nodes::Effect.vibrato
     end
 
     def distortion
-      @nodes << Nodes::Effect.send(__method__)
+      @nodes << Nodes::Effect.distortion
     end
 
     def chorus
-      @nodes << Nodes::Effect.send(__method__)
+      @nodes << Nodes::Effect.chorus
     end
 
     def tremolo
-      @nodes << Nodes::Effect.send(__method__)
+      @nodes << Nodes::Effect.tremolo
     end
 
     def feedback_delay
-      @nodes << Nodes::Effect.send(__method__)
+      @nodes << Nodes::Effect.feedback_delay
     end
 
     def freeverb
-      @nodes << Nodes::Effect.send(__method__)
+      @nodes << Nodes::Effect.freeverb
     end
 
     def jc_reverb
-      @nodes << Nodes::Effect.send(__method__)
+      @nodes << Nodes::Effect.jc_reverb
     end
 
     def phaser
-      @nodes << Nodes::Effect.send(__method__)
+      @nodes << Nodes::Effect.phaser
     end
 
     def ping_pong_delay
-      @nodes << Nodes::Effect.send(__method__)
+      @nodes << Nodes::Effect.ping_pong_delay
     end
   end
 
