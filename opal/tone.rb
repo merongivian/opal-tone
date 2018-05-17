@@ -68,46 +68,6 @@ module NegaSonic
         end
       end
     end
-
-    module Effect
-      class << self
-        def vibrato
-          Tone::Effect::Vibrato.new
-        end
-
-        def distortion
-          Tone::Effect::Distortion.new
-        end
-
-        def chorus
-          Tone::Effect::Chorus.new
-        end
-
-        def tremolo
-          Tone::Effect::Tremolo.new
-        end
-
-        def feedback_delay
-          Tone::Effect::FeedbackDelay.new
-        end
-
-        def freeverb
-          Tone::Effect::Freeverb.new
-        end
-
-        def jc_reverb
-          Tone::Effect::JCReverb.new
-        end
-
-        def phaser
-          Tone::Effect::Phaser.new
-        end
-
-        def ping_pong_delay
-          Tone::Effect::PingPongDelay.new
-        end
-      end
-    end
   end
 
   class Instrument
@@ -172,39 +132,39 @@ module NegaSonic
     end
 
     def vibrato
-      @nodes << Nodes::Effect.vibrato
+      @nodes << Tone::Effect::Vibrato.new
     end
 
     def distortion
-      @nodes << Nodes::Effect.distortion
+      @nodes << Tone::Effect::Distortion.new
     end
 
     def chorus
-      @nodes << Nodes::Effect.chorus
+      @nodes << Tone::Effect::Chorus.new
     end
 
     def tremolo
-      @nodes << Nodes::Effect.tremolo
+      @nodes << Tone::Effect::Tremolo.new
     end
 
     def feedback_delay
-      @nodes << Nodes::Effect.feedback_delay
+      @nodes << Tone::Effect::FeedbackDelay.new
     end
 
     def freeverb
-      @nodes << Nodes::Effect.freeverb
+      @nodes << Tone::Effect::Freeverb.new
     end
 
     def jc_reverb
-      @nodes << Nodes::Effect.jc_reverb
+      @nodes << Tone::Effect::JCReverb.new
     end
 
     def phaser
-      @nodes << Nodes::Effect.phaser
+      @nodes << Tone::Effect::Phaser.new
     end
 
     def ping_pong_delay
-      @nodes << Nodes::Effect.ping_pong_delay
+      @nodes << Tone::Effect::PingPongDelay.new
     end
   end
 
