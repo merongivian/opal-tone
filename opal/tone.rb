@@ -149,7 +149,13 @@ module NegaSonic
       if @nodes != new_nodes
         @input_node = new_synth
         @input_node.chain(*@effects_dsl.nodes)
+
+        old_nodes = @nodes
         @nodes = new_nodes
+
+        Tone::Transport.schedule_after(1) do |time|
+          old_nodes.each(&:dispose)
+        end
       end
     end
   end
@@ -361,6 +367,11 @@ class Tone
       def cancel
         `Tone.Transport.cancel()`
       end
+
+      def schedule_after(time, &block)
+        future_time = `Tone.Transport.seconds + time`
+        `Tone.Transport.scheduleOnce(#{block.to_n}, Tone.TransportTime(future_time))`
+      end
     end
   end
 
@@ -371,6 +382,10 @@ class Tone
       alias_native :dispose
       alias_native :connect
       alias_native :to_master
+
+      def ==(other)
+        self.class == other.class
+      end
     end
 
     class Chorus < Base
@@ -384,9 +399,10 @@ class Tone
       end
 
       def ==(other)
-        frequency == other.frequency &&
-          delay_time == other.delay_time &&
-            depth == other.depth
+        super &&
+          frequency == other.frequency &&
+            delay_time == other.delay_time &&
+              depth == other.depth
       end
     end
 
@@ -400,8 +416,9 @@ class Tone
       end
 
       def ==(other)
-        frequency == other.frequency &&
-          depth == other.depth
+        super &&
+          frequency == other.frequency &&
+            depth == other.depth
       end
     end
 
@@ -414,7 +431,7 @@ class Tone
       end
 
       def ==(other)
-        value == other.value
+        super && value == other.value
       end
     end
 
@@ -428,8 +445,9 @@ class Tone
       end
 
       def ==(other)
-        frequency == other.frequency &&
-          depth == other.depth
+        super &&
+          frequency == other.frequency &&
+            depth == other.depth
       end
     end
 
@@ -443,8 +461,9 @@ class Tone
       end
 
       def ==(other)
-        delay_time == other.delay_time &&
-          feedback == other.feedback
+        super &&
+          delay_time == other.delay_time &&
+            feedback == other.feedback
       end
     end
 
@@ -458,8 +477,9 @@ class Tone
       end
 
       def ==(other)
-        room_size == other.room_size &&
-          dampening == other.dampening
+        super &&
+          room_size == other.room_size &&
+            dampening == other.dampening
       end
     end
 
@@ -472,7 +492,7 @@ class Tone
       end
 
       def ==(other)
-        room_size == other.room_size
+        super && room_size == other.room_size
       end
     end
 
@@ -487,9 +507,10 @@ class Tone
       end
 
       def ==(other)
-        frequency == other.frequency &&
-          octaves == other.octaves &&
-            base_frequency == other.base_frequency
+        super &&
+          frequency == other.frequency &&
+            octaves == other.octaves &&
+              base_frequency == other.base_frequency
       end
     end
 
@@ -503,8 +524,9 @@ class Tone
       end
 
       def ==(other)
-        delay_time == other.delay_time &&
-            feedback == other.feedback
+        super &&
+          delay_time == other.delay_time &&
+              feedback == other.feedback
       end
     end
   end
@@ -514,6 +536,7 @@ class Tone
       include Native
 
       alias_native :connect
+      alias_native :dispose
       alias_native :trigger_attack_release, :triggerAttackRelease
       alias_native :trigger_attack, :triggerAttack
       alias_native :trigger_release, :triggerRelease
